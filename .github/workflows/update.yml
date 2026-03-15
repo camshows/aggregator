@@ -1,0 +1,25 @@
+name: Update Chaturbate rooms
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'    # every 15 minutes
+  workflow_dispatch:          # can run manually too
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch rooms
+        run: |
+          curl -s "https://chaturbate.com/api/public/affiliates/onlinerooms/?wm=T2CSW&client_ip=8.8.8.8" \
+            > public/data.json
+
+      - name: Commit if changed
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add public/data.json
+          git commit -m "Update rooms $(date +'%Y-%m-%d %H:%M')" || echo "No changes"
+          git push
