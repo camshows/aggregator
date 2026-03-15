@@ -1,197 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Live Cam Shows</title>
-  <style>
-    :root {
-      --bg: #0f0f1a;
-      --card: #1a1a2e;
-      --accent: #e91e63;
-      --text: #e0e0ff;
-      --muted: #a0a0c0;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, sans-serif;
-      min-height: 100vh;
-      padding: 2rem 1rem;
-      line-height: 1.5;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
-    h1 {
-      font-size: 2.4rem;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(90deg, #ff6ec7, #7873f5);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .subtitle { color: var(--muted); font-size: 1.1rem; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Cam Rooms</title>
 
-    #status {
-      text-align: center;
-      margin: 2rem 0;
-      font-size: 1.1rem;
-      color: var(--muted);
-    }
-    #error {
-      color: #ff6b6b;
-      background: rgba(255,107,107,0.12);
-      padding: 1rem;
-      border-radius: 8px;
-      max-width: 600px;
-      margin: 1.5rem auto;
-      text-align: center;
-    }
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#0f0f0f;
+  color:white;
+}
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1.5rem;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-    .card {
-      background: var(--card);
-      border-radius: 12px;
-      overflow: hidden;
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    }
-    .card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 12px 30px rgba(233,30,99,0.25);
-    }
-    .thumb {
-      position: relative;
-      height: 180px;
-      overflow: hidden;
-      background: #111;
-    }
-    .thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.4s ease;
-    }
-    .card:hover .thumb img { transform: scale(1.06); }
+header{
+  text-align:center;
+  padding:20px;
+  font-size:28px;
+  font-weight:bold;
+  color:#ff4fa3;
+}
 
-    .info {
-      padding: 1rem;
-    }
-    .username {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: white;
-      margin-bottom: 0.35rem;
-      display: block;
-    }
-    .meta {
-      font-size: 0.95rem;
-      color: var(--muted);
-      margin-bottom: 0.6rem;
-    }
-    .show-type {
-      font-size: 0.9rem;
-      color: #ffca28;
-      font-weight: 500;
-    }
-    .btn {
-      display: inline-block;
-      background: var(--accent);
-      color: white;
-      text-decoration: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 6px;
-      font-weight: 600;
-      margin-top: 0.8rem;
-      transition: background 0.2s;
-    }
-    .btn:hover { background: #c2185b; }
+#rooms{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:18px;
+  padding:20px;
+}
 
-    @media (max-width: 600px) {
-      .grid { grid-template-columns: 1fr; }
-      h1 { font-size: 2rem; }
-    }
-  </style>
+.card{
+  background:#1a1a1a;
+  border-radius:12px;
+  overflow:hidden;
+  transition:transform .25s, box-shadow .25s;
+}
+
+.card:hover{
+  transform:scale(1.04);
+  box-shadow:0 0 15px rgba(255,79,163,.4);
+}
+
+.thumb{
+  width:100%;
+  height:170px;
+  object-fit:cover;
+}
+
+.info{
+  padding:12px;
+}
+
+.username{
+  font-weight:bold;
+  font-size:16px;
+  margin-bottom:4px;
+}
+
+.viewers{
+  color:#39ffb6;
+  font-size:13px;
+}
+
+.tags{
+  color:#ff4fa3;
+  font-size:12px;
+  margin-top:4px;
+}
+
+.watch{
+  display:block;
+  margin-top:10px;
+  text-align:center;
+  padding:8px;
+  background:#ff2d8f;
+  border-radius:6px;
+  text-decoration:none;
+  color:white;
+  font-weight:bold;
+}
+
+.watch:hover{
+  background:#ff4fa3;
+}
+</style>
 </head>
+
 <body>
 
-<header>
-  <h1>Live Cam Shows</h1>
-  <div class="subtitle">Real-time overview • Updated on load</div>
-</header>
+<header>🔥 Live Cam Streams</header>
 
-<div id="status">Loading live rooms…</div>
-<div id="error" style="display:none;"></div>
-
-<div class="grid" id="grid"></div>
+<div id="rooms"></div>
 
 <script>
-  const proxy = 'https://api.allorigins.win/raw?url=';
-  const apiUrl = 'https://chaturbate.com/api/public/affiliates/onlinerooms/?wm=T2CSW&client_ip=request_ip';
 
-  const statusEl = document.getElementById('status');
-  const errorEl  = document.getElementById('error');
-  const gridEl   = document.getElementById('grid');
+const allowedTags = ["18","petite","blonde","french","latina"];
 
-  async function loadRooms() {
-    try {
-      const res = await fetch(proxy + encodeURIComponent(apiUrl));
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+fetch("https://chaturbate.com/api/public/affiliates/onlinerooms/?wm=T2CSW&client_ip=request_ip")
+.then(res => res.json())
+.then(data => {
 
-      const rooms = await res.json();
-      if (!Array.isArray(rooms) || rooms.length === 0) {
-        statusEl.textContent = 'No rooms online right now.';
-        return;
-      }
+  const container = document.getElementById("rooms");
 
-      gridEl.innerHTML = '';
-      statusEl.textContent = `${rooms.length} rooms online • last updated just now`;
+  data.results.forEach(room => {
 
-      rooms.forEach(room => {
-        const card = document.createElement('div');
-        card.className = 'card';
+    if(!room.tags) return;
 
-        const genderAge = [room.gender || '?', room.age ? `${room.age}` : ''].filter(Boolean).join(' • ');
-        const followers = room.followers ? `${room.followers.toLocaleString()} followers` : '';
+    const match = room.tags.some(tag =>
+      allowedTags.includes(tag.toLowerCase())
+    );
 
-        card.innerHTML = `
-          <a href="https://chaturbate.com/${room.username}/?tour=${room.wm_alias || 'T2CSW'}" target="_blank" rel="noopener noreferrer">
-            <div class="thumb">
-              <img src="${room.image_url || `https://via.placeholder.com/300x180/111/eee?text=${room.username}`}" 
-                   alt="${room.username}" loading="lazy">
-            </div>
-            <div class="info">
-              <span class="username">@${room.username}</span>
-              <div class="meta">${genderAge} ${followers ? '• ' + followers : ''}</div>
-              <div class="show-type">${room.current_show || 'Free chat'}</div>
-              <span class="btn">Watch Live →</span>
-            </div>
+    if(match){
+
+      const card = document.createElement("div");
+      card.className="card";
+
+      card.innerHTML = `
+        <img class="thumb" src="${room.image_url_360x270}">
+        <div class="info">
+          <div class="username">${room.username}</div>
+          <div class="viewers">${room.num_users} watching</div>
+          <div class="tags">${room.tags.slice(0,4).join(", ")}</div>
+          <a class="watch" href="https://chaturbate.com/${room.username}/?tour=T2CSW" target="_blank">
+            Watch Live
           </a>
-        `;
-        gridEl.appendChild(card);
-      });
+        </div>
+      `;
 
-    } catch (err) {
-      console.error(err);
-      errorEl.textContent = `Could not load rooms: ${err.message}. The API may be temporarily unavailable or blocked.`;
-      errorEl.style.display = 'block';
-      statusEl.textContent = 'Failed to load';
+      container.appendChild(card);
+
     }
-  }
 
-  // Run on page load
-  loadRooms();
+  });
 
-  // Optional: refresh every 3 minutes (180000 ms)
-  // setInterval(loadRooms, 180000);
+});
+
 </script>
 
 </body>
